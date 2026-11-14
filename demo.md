@@ -10,7 +10,7 @@ Sobe um cluster Talos completo usando um único container Docker como "nó" — 
 Com um nó só, o control plane sobe com o taint padrão que bloqueia agendamento de pods comuns — e o `talosctl` só considera o cluster "saudável" quando o CoreDNS estiver `Running`, o que não acontece enquanto o taint existir. O `--config-patch` abaixo já remove esse taint na criação (`cluster.allowSchedulingOnControlPlanes: true`), então o health-check não fica preso esperando — sem isso, o comando pode parecer travado por vários minutos:
 
 ```bash
-talosctl cluster create docker --name talos-lab \
+talosctl cluster create docker --name talos-devops-days-bsb \
   --config-patch '{"cluster":{"allowSchedulingOnControlPlanes":true}}'
 ```
 
@@ -18,7 +18,7 @@ Assim que o comando termina, o `talosctl` já deixa o `talosconfig` configurado 
 
 ```bash
 talosctl kubeconfig -n 10.5.0.2
-kubectl config use-context admin@talos-lab
+kubectl config use-context admin@talos-devops-days-bsb
 talosctl config info
 kubectl config current-context
 ```
@@ -132,5 +132,5 @@ Remove a aplicação e destrói o cluster local, liberando os containers Docker 
 kubectl delete -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/deployment.yaml \
   -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/service.yaml
 
-talosctl cluster destroy --name talos-lab
+talosctl cluster destroy --name talos-devops-days-bsb
 ```
