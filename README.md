@@ -2,6 +2,8 @@
 
 Slides da palestra apresentada no **DevOps Days Brasília 2026**.
 
+📄 **Slides online:** https://silvemerson.github.io/talk-devopsdays-bsb-2026/
+
 Módulo Terraform/OpenTofu citado nos slides: [`silvemerson/terraform-proxmox-talos-linux-cluster`](https://github.com/silvemerson/terraform-proxmox-talos-linux-cluster).
 Roteiro da demo ao vivo: [`demo.md`](demo.md).
 

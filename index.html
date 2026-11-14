@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talos Linux · DevOps Days Brasília 2026</title>
+<meta name="description" content="Slides da palestra Talos Linux: um OS minimalista e sem SSH para o Kubernetes, por Emerson Silva (4Linux), no DevOps Days Brasília 2026.">
+<link rel="icon" href="logos/event-logo.png">
+<style>
+  :root { --bg: #0B1426; --bg2: #1a2332; --fg: #F8FAFC; --dim: #8B9DC3; --green: #00E6CC; --orange: #f15a29; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--fg);
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+  }
+  body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(90deg, var(--green), var(--orange)); }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 48px; }
+  header { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+  header img { width: 96px; height: 96px; border-radius: 14px; border: 2px solid rgba(0, 230, 204, 0.5); }
+  .tag { display: inline-block; font-size: 0.8rem; font-weight: 700; color: var(--green); border: 1px solid rgba(0, 230, 204, 0.45); background: rgba(0, 230, 204, 0.12); padding: 4px 12px; border-radius: 20px; }
+  h1 { margin: 8px 0 4px; font-size: clamp(1.4rem, 4vw, 2.2rem); line-height: 1.2; }
+  h1 span { color: var(--green); }
+  .by { color: var(--dim); margin: 0; }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .btn { text-decoration: none; font-weight: 600; padding: 10px 18px; border-radius: 8px; border: 1px solid rgba(0, 230, 204, 0.45); color: var(--green); }
+  .btn.primary { background: var(--green); color: var(--bg); }
+  .viewer { width: 100%; aspect-ratio: 16 / 9; border: 1px solid rgba(0, 230, 204, 0.25); border-radius: 10px; background: #060e1a; }
+  footer { margin-top: 24px; color: var(--dim); font-size: 0.9rem; }
+  footer a { color: var(--green); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="logos/event-logo.png" alt="DevOps Days Brasília">
+    <div>
+      <span class="tag">DevOps Days Brasília 2026</span>
+      <h1>Talos Linux: um OS <span>minimalista e sem SSH</span> para o Kubernetes</h1>
+      <p class="by">Emerson Silva · 4Linux</p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <a class="btn primary" href="talos-slides.pdf" download>Baixar PDF</a>
+    <a class="btn" href="slides.html">Abrir em tela cheia (HTML)</a>
+    <a class="btn" href="https://github.com/silvemerson/talk-devopsdays-bsb-2026/blob/main/demo.md">Roteiro da demo</a>
+  </div>
+
+  <object class="viewer" data="talos-slides.pdf" type="application/pdf">
+    <p style="padding:16px">Seu navegador não exibe PDF embutido. <a class="btn" href="talos-slides.pdf">Abrir o PDF</a></p>
+  </object>
+
+  <footer>
+    <a href="https://emerson-silva.blog.br">emerson-silva.blog.br</a> · @silvemerson
+  </footer>
+</main>
+</body>
+</html>

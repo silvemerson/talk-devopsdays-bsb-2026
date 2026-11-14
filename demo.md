@@ -10,9 +10,14 @@ Sobe um cluster Talos completo usando um único container Docker como "nó" — 
 Com um nó só, o control plane sobe com o taint padrão que bloqueia agendamento de pods comuns — e o `talosctl` só considera o cluster "saudável" quando o CoreDNS estiver `Running`, o que não acontece enquanto o taint existir. O `--config-patch` abaixo já remove esse taint na criação (`cluster.allowSchedulingOnControlPlanes: true`), então o health-check não fica preso esperando — sem isso, o comando pode parecer travado por vários minutos:
 
 ```bash
-talosctl cluster create docker --name talos-devops-days-bsb \
+# Garante que não sobrou estado de uma execução anterior (o destroy sem --name mira o "talos-default")
+talosctl cluster destroy --name talos-devops-days-bsb
+
+talosctl cluster create docker --name talos-devops-days-bsb --workers 0 \
   --config-patch '{"cluster":{"allowSchedulingOnControlPlanes":true}}'
 ```
+
+> Por padrão o `cluster create docker` sobe **1 control plane + 1 worker** (`--workers 1`). O `--workers 0` mantém um nó só, como descrito acima.
 
 Assim que o comando termina, o `talosctl` já deixa o `talosconfig` configurado (contexto do `talosctl` em si), mas sem nó padrão definido — por isso todo comando abaixo passa `-n <ip>` explicitamente. O `kubeconfig` **não** vem automático nessa versão — é um passo explícito, feito puxando ele do próprio nó via API (sem SSH, como tudo aqui):
 
@@ -22,6 +27,20 @@ kubectl config use-context admin@talos-devops-days-bsb
 talosctl config info
 kubectl config current-context
 ```
+
+### Se o CoreDNS ficar `Pending`
+
+Sintoma: `0/N nodes are available: N node(s) had untolerated taint(s)`. Veja qual taint está bloqueando:
+
+```bash
+kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
+```
+
+* `node-role.kubernetes.io/control-plane:NoSchedule` — o patch não foi aplicado (geralmente cluster recriado em cima de estado antigo). Remova na hora:
+  ```bash
+  kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+  ```
+* `node.kubernetes.io/not-ready` — o CNI (flannel) ainda não subiu. Aguarde 1–2 min e, se persistir, veja `kubectl -n kube-system logs ds/kube-flannel`.
 
 ## 2. Ver os nós sem SSH (API gRPC via talosctl)
 
@@ -95,33 +114,33 @@ ssh root@10.5.0.2
 talosctl -n 10.5.0.2 read /etc/os-release
 ```
 
-## 7. Deploy de uma aplicação real (Snake Classic)
+## 7. Deploy de uma aplicação real (Super Mario)
 
-Pra fechar a demo com algo tangível, subo uma aplicação de verdade no cluster — o jogo Snake Classic (repo: https://github.com/silvemerson/snake-classic), que já vem com `Dockerfile`, `Deployment` e `Service` (`ClusterIP`) prontos em `manifest/`. Como já removemos o taint do control plane na criação do cluster (passo 1), o pod agenda normalmente, sem passo extra aqui.
+Pra fechar a demo com algo tangível, subo uma aplicação de verdade no cluster — um Super Mario jogável no navegador, empacotado na imagem [`pengbai/docker-supermario`](https://hub.docker.com/r/pengbai/docker-supermario) (Tomcat servindo o jogo na porta `8080`). Como já removemos o taint do control plane na criação do cluster (passo 1), o pod agenda normalmente, sem passo extra aqui.
+
+> A imagem tem ~650MB. O nó do Talos tem o próprio containerd, então um `docker pull` no host **não** adianta: rode este passo uma vez no cluster já criado antes da palestra (e apague só o deployment), pra imagem ficar em cache no nó e o pod subir na hora.
 
 ```bash
-kubectl apply \
-  -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/deployment.yaml \
-  -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/service.yaml
+kubectl create deployment supermario --image=pengbai/docker-supermario --port=8080
+kubectl expose deployment supermario --port=8080 --target-port=8080
 
 # Espera o rollout terminar e confirma que o pod subiu
-kubectl rollout status deployment/snake-classic
-kubectl get pods -l app=snake-classic
+kubectl rollout status deployment/supermario
+kubectl get pods -l app=supermario
 ```
 
 O Service é `ClusterIP` — não tem LoadBalancer nem Ingress na frente, de propósito, pra manter a demo simples. Pra acessar do navegador, uso `port-forward`, que abre um túnel direto da minha máquina até o pod dentro do cluster:
 
 ```bash
-kubectl port-forward svc/snake-classic 8080:80
+kubectl port-forward svc/supermario 8080:8080
 ```
 
-Com o port-forward rodando, abro no navegador: **http://localhost:8080** — e jogo uma partida rápida pra mostrar que a aplicação está mesmo de pé.
+Com o port-forward rodando, abro no navegador: **http://localhost:8080** — e jogo uma fase rápida pra mostrar que a aplicação está mesmo de pé.
 
-Se sobrar tempo, mostro também que dá pra inspecionar a saúde da aplicação sem sair da API do cluster, com um `kubectl exec` direto no pod:
+Se sobrar tempo, mostro os logs do Tomcat direto pela API do cluster:
 
 ```bash
-kubectl exec deploy/snake-classic -- python -c \
-  "import urllib.request; print(urllib.request.urlopen('http://localhost:8080/health').read())"
+kubectl logs deploy/supermario --tail=20
 ```
 
 ## Limpeza (pós-demo)
@@ -129,8 +148,7 @@ kubectl exec deploy/snake-classic -- python -c \
 Remove a aplicação e destrói o cluster local, liberando os containers Docker usados como nós.
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/deployment.yaml \
-  -f https://raw.githubusercontent.com/silvemerson/snake-classic/main/manifest/service.yaml
+kubectl delete deployment,service supermario
 
 talosctl cluster destroy --name talos-devops-days-bsb
 ```
